@@ -54,6 +54,53 @@ echolog()
    log "$@"
 }
 
+# ... (bagian awal file livekitlib.sh) ...
+
+# =================================================================
+# Device Discovery Functions
+# =================================================================
+
+find_data() {
+   local TIMEOUT=$1
+   local MNT=$2
+   local COUNT=0
+   local FOUND=""
+
+   # Mencoba mencari selama durasi TIMEOUT
+   while [ $COUNT -lt $TIMEOUT ]; do
+      # Cek semua block device yang terdeteksi oleh kernel (partisi dan CD-ROM)
+      for DEV in $(lsblk -pno NAME,TYPE | grep 'part\|rom' | awk '{print $1}'); do
+         # Lewati jika sudah di-mount
+         if mountpoint -q "$MNT" 2>/dev/null; then break; fi
+         
+         # Coba mount perangkat secara Read-Only
+         mount -o ro "$DEV" "$MNT" 2>/dev/null
+         
+         # VALIDASI AKURASI: Pastikan folder LIVEKITNAME dan subfolder modules tersedia
+         if [ -d "$MNT/$LIVEKITNAME/modules" ]; then
+            FOUND="$DEV"
+            break
+         else
+            # Jika salah, lepaskan mount agar bisa mencoba perangkat lain
+            umount "$MNT" 2>/dev/null
+         fi
+      done
+
+      if [ "$FOUND" != "" ]; then
+         echo "$FOUND"
+         return 0
+      fi
+
+      sleep 1
+      COUNT=$((COUNT + 1))
+      echo -n "." >&2
+   done
+
+   return 1
+}
+
+# ... (lanjutkan dengan fungsi mount_bundles dan lainnya) ...
+
 
 # show information about the debug shell
 show_debug_banner()
