@@ -78,15 +78,15 @@ done
 if [ "$SKIPCOREMOD" = "" ]; then
    # Versi mksquashfs dengan tambahan exclude folder dokumentasi, log, dan kernel source
    mksquashfs $COREFS $LIVEKITDATA/$LIVEKITNAME/modules/01-core.$BEXT \
-   -comp zstd -b 1024K -always-use-fragments -keep-as-directory \
-   -e var/cache tmp/* usr/share/man usr/share/doc usr/share/info usr/share/linux-5.10.195 root/gnome var/log root/ || exit
+   -comp zstd -b 1M -always-use-fragments -keep-as-directory \
+   -e /var/cache/* tmp/* /usr/share/man/* /usr/share/doc/* /usr/share/info/* /usr/share/linux-5.10.195/* root/gnome/* /var/log/* root/ /opt/* /usr/share/sliver/* /usr/share/sliver/* /usr/share/seclists/* /proc/* /sys/* /run/* || exit
 fi
 
 cd "$LIVEKITDATA"
 ARCH=$(uname -m)
 TARGET=/tmp
 
-cat "$CWD/bootinfo.txt" | fgrep -v "#" | sed -r "s/mylinux/$LIVEKITNAME/" | sed -r "s/\$/\x0D/" > readme.txt
+cat "$CWD/bootinfo.txt" | fgrep -v "#" | sed -r "s/$LIVEKITNAME/" | sed -r "s/\$/\x0D/" > readme.txt
 
 echo cd $LIVEKITDATA '&&' $MKISOFS -o "$TARGET/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$LIVEKITNAME" -V "$LIVEKITNAME" \
 -no-emul-boot -boot-info-table -boot-load-size 4 \
